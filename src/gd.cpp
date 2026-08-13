@@ -12,6 +12,29 @@ namespace {
 		if ( str.length() < suffix.length() ) return false;
 		return str.rfind(suffix) == ( str.length() - suffix.length() );
 	}
+
+	std::string clean_iso_name(const std::string& name, bool is_dir) {
+		if ( name == "." || name == ".." ) return name;
+		std::string out;
+
+		for ( char c : name ) {
+			if ( std::isalnum(c) || c == '_' || c == '-' ) out += std::toupper(c);
+			else if ( c == '.' && !is_dir ) out += '.';
+		}
+
+		if ( out.length() > 30 ) {
+			if ( is_dir ) out = out.substr(0, 30);
+			else {
+				size_t dot = out.find_last_of('.');
+				if ( dot != std::string::npos && dot > 25 ) out = out.substr(0, 25) + out.substr(dot);
+				else out = out.substr(0, 30);
+			}
+		}
+
+		if ( !is_dir && !ends_with(out, ";1") ) out += ";1";
+
+		return out;
+	}
 }
 
 
@@ -196,29 +219,6 @@ void Layout::solve( FileNode& root, uint32_t starting_lba, uint32_t lba_offset )
 	} else {
 		total_sectors = (lba_offset == 45000) ? (549150 - 45000) : current_lba;
 	}
-}
-
-std::string clean_iso_name(const std::string& name, bool is_dir) {
-	if ( name == "." || name == ".." ) return name;
-	std::string out;
-
-	for ( char c : name ) {
-		if ( std::isalnum(c) || c == '_' || c == '-' ) out += std::toupper(c);
-		else if ( c == '.' && !is_dir ) out += '.';
-	}
-
-	if ( out.length() > 30 ) {
-		if ( is_dir ) out = out.substr(0, 30);
-		else {
-			size_t dot = out.find_last_of('.');
-			if ( dot != std::string::npos && dot > 25 ) out = out.substr(0, 25) + out.substr(dot);
-			else out = out.substr(0, 30);
-		}
-	}
-
-	if ( !is_dir && !ends_with(out, ";1") ) out += ";1";
-
-	return out;
 }
 
 namespace {
